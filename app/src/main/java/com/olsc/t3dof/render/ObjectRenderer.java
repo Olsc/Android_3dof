@@ -1,4 +1,4 @@
-package com.olsc.t6dof.render;
+package com.olsc.t3dof.render;
 
 import android.content.Context;
 import android.hardware.SensorManager;
@@ -6,7 +6,7 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.view.WindowManager;
-import com.olsc.t6dof.sensors.OrientationSensor;
+import com.olsc.t3dof.sensors.OrientationSensor;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -22,7 +22,7 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class ObjectRenderer implements GLSurfaceView.Renderer {
     static {
-        System.loadLibrary("t6dof_native");
+        System.loadLibrary("t3dof_native");
     }
 
     /**

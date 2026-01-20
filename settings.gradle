@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "6dof"
+rootProject.name = "3dof"
 include ':app'

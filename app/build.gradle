@@ -3,14 +3,14 @@ plugins {
 }
 
 android {
-    namespace 'com.olsc.t6dof'
+    namespace 'com.olsc.t3dof'
     ndkVersion "29.0.14206865"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId "com.olsc.t6dof"
+        applicationId "com.olsc.t3dof"
         minSdk 21
         targetSdk 36
         versionCode 1

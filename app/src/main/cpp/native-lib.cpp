@@ -3,7 +3,7 @@
 #include <cstring>
 #include <android/log.h>
 
-#define LOG_TAG "Native6DOF"
+#define LOG_TAG "Native3DOF"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 
 #define PI 3.14159265358979323846f
@@ -139,7 +139,7 @@ void getRemappedMatrix(float* outMatrix, float* inMatrix, int rotation) {
 }
 
 extern "C" JNIEXPORT jfloatArray JNICALL
-Java_com_olsc_t6dof_render_ObjectRenderer_calculateInsertionPoint(JNIEnv* env, jobject thiz, jfloatArray rotationMatrix, jint rotation, jfloat distance) {
+Java_com_olsc_t3dof_render_ObjectRenderer_calculateInsertionPoint(JNIEnv* env, jobject thiz, jfloatArray rotationMatrix, jint rotation, jfloat distance) {
     jsize len = env->GetArrayLength(rotationMatrix);
     float deviceRotation[16];
     
@@ -169,7 +169,7 @@ Java_com_olsc_t6dof_render_ObjectRenderer_calculateInsertionPoint(JNIEnv* env, j
 }
 
 extern "C" JNIEXPORT jfloatArray JNICALL
-Java_com_olsc_t6dof_render_ObjectRenderer_computeMVP(JNIEnv* env, jobject thiz, jfloatArray rotationMatrix, jint rotation, jfloat ratio, jfloatArray objectPos) {
+Java_com_olsc_t3dof_render_ObjectRenderer_computeMVP(JNIEnv* env, jobject thiz, jfloatArray rotationMatrix, jint rotation, jfloat ratio, jfloatArray objectPos) {
     // 1. 获取设备旋转数据
     jsize len = env->GetArrayLength(rotationMatrix);
     float deviceRotation[16];

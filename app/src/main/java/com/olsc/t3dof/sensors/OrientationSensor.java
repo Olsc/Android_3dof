@@ -1,4 +1,4 @@
-package com.olsc.t6dof.sensors;
+package com.olsc.t3dof.sensors;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -137,7 +137,7 @@ public class OrientationSensor implements SensorEventListener {
     /**
      * 根据当前屏幕旋转角度（横屏/竖屏）调整传感器旋转矩阵。
      * 备注：此方法在 Java 层处理坐标变换，若需高性能可在 Native 层处理。
-     * 
+     *
      * @param rotation Surface.ROTATION_0/90/180/270
      */
     public float[] getAdjustedRotationMatrix(int rotation) {

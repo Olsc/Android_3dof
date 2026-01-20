@@ -1,11 +1,11 @@
-package com.olsc.t6dof;
+package com.olsc.t3dof;
 
 import android.app.Activity;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.widget.Toast;
-import com.olsc.t6dof.render.ObjectRenderer;
-import com.olsc.t6dof.sensors.OrientationSensor;
+import com.olsc.t3dof.render.ObjectRenderer;
+import com.olsc.t3dof.sensors.OrientationSensor;
 
 /**
  * 应用的主 Activity，负责初始化传感器、GLSurfaceView 以及渲染器。

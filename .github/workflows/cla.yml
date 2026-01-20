@@ -25,7 +25,7 @@ jobs:
           path-to-document: "https://github.com/Olsc/Android_3dof/blob/main/docs/ContributorLicenseAgreement.md" # e.g. a CLA or a DCO document
           # branch should not be protected
           branch: "main"
-          allowlist: Olsc,bot*
+          allowlist: Olsc,olsc,bot*
 
           #below are the optional inputs - If the optional inputs are not given, then default values will be taken
           #create-file-commit-message: 'For example: Creating file for storing CLA Signatures'
