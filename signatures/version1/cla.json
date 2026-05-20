@@ -1,3 +1,12 @@
 {
-   "signedContributors": []
+  "signedContributors": [
+    {
+      "name": "ZUXTUO",
+      "id": 100578848,
+      "comment_id": 4494156358,
+      "created_at": "2026-05-20T03:14:12Z",
+      "repoId": 1133225497,
+      "pullRequestNo": 13
+    }
+  ]
 }
