@@ -134,7 +134,7 @@ public class ObjectRenderer implements GLSurfaceView.Renderer {
 
         // 延迟初始化：当获取到有效的传感器数据后，在相机前方固定距离生成物体
         if (!mInitialized && !isIdentity) {
-            mObjectWorldPos = calculateInsertionPoint(rotationMatrix, rotation, 5.0f);
+            mObjectWorldPos = calculateInsertionPoint(rotationMatrix, rotation, 2.0f);
             mInitialized = true;
             android.util.Log.d("ObjectRenderer", String.format("物体 world 坐标已初始化: [%.2f, %.2f, %.2f]",
                     mObjectWorldPos[0], mObjectWorldPos[1], mObjectWorldPos[2]));
@@ -155,7 +155,7 @@ public class ObjectRenderer implements GLSurfaceView.Renderer {
      * 生成并初始化物体的顶点、颜色和索引缓冲区。
      */
     private void createObject() {
-        float size = 0.5f;
+        float size = 0.25f;
 
         // 8 个顶点
         float vertices[] = {
