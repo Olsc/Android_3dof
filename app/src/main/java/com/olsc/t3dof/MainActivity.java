@@ -9,6 +9,9 @@ import com.olsc.t3dof.sensors.OrientationSensor;
 
 /**
  * 应用的主 Activity，负责初始化传感器、GLSurfaceView 以及渲染器。
+ *
+ * 无论设备传感器是否齐全都会正常启动：缺少硬件时只弹土司提示，
+ * 并通过多级回退（旋转矢量 / 游戏旋转矢量 / 加速度+磁力 / 陀螺仪积分）尽力保证基础 3DOF 功能。
  */
 public class MainActivity extends Activity {
     private GLSurfaceView glSurfaceView;
@@ -22,12 +25,8 @@ public class MainActivity extends Activity {
         // 初始化方向传感器
         orientationSensor = new OrientationSensor();
 
-        // 检查设备是否具备必要的传感器
-        if (!orientationSensor.hasRequiredSensors(this)) {
-            Toast.makeText(this, "此设备缺少必要的传感器（陀螺仪或加速度计+磁力计）", Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
+        // 检测可用的姿态来源（多级回退），仅用于提示，不影响启动
+        OrientationSensor.Mode mode = orientationSensor.detectMode(this);
 
         // 初始化 OpenGL 视图
         glSurfaceView = new GLSurfaceView(this);
@@ -41,6 +40,26 @@ public class MainActivity extends Activity {
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
         setContentView(glSurfaceView);
+
+        // 只提示，不退出
+        showModeToast(mode);
+    }
+
+    /**
+     * 用土司提示当前使用的姿态模式；若有局限也一并说明。
+     */
+    private void showModeToast(OrientationSensor.Mode mode) {
+        String text;
+        if (mode == OrientationSensor.Mode.NONE) {
+            text = "未检测到可用于 3DOF 的姿态传感器，场景将保持静止。";
+        } else {
+            text = "姿态模式：" + orientationSensor.getModeName();
+            String notice = orientationSensor.getModeNotice();
+            if (notice != null) {
+                text = text + "\n" + notice;
+            }
+        }
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show();
     }
 
     @Override
