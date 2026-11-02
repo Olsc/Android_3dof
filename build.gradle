@@ -1,4 +1,4 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+// 顶层构建脚本，可在此配置对所有子模块生效的公共选项
 plugins {
     alias(libs.plugins.android.application) apply false
 }

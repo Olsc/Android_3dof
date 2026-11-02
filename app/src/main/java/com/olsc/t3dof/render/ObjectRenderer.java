@@ -16,34 +16,16 @@ import java.nio.ShortBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-/**
- * 负责 3D 物体的渲染逻辑。
- * 包括通过 JNI 调用 C++ 层计算 MVP 矩阵，并使用 OpenGL ES 2.0 绘制物体。
- */
+// 使用 OpenGL ES 2.0 绘制立方体，MVP 矩阵由 C++ 层通过 JNI 计算
 public class ObjectRenderer implements GLSurfaceView.Renderer {
     static {
         System.loadLibrary("t3dof_native");
     }
 
-    /**
-     * 计算物体插入点（即相机前方一定距离的世界坐标）。
-     * 
-     * @param rotationMatrix 手机当前的旋转矩阵。
-     * @param rotation       屏幕旋转角度。
-     * @param distance       物体距离相机的距离。
-     * @return 包含物体 [x, y, z] 世界坐标的数组。
-     */
+    // 计算相机前方 distance 处的物体世界坐标，返回 [x, y, z]
     public native float[] calculateInsertionPoint(float[] rotationMatrix, int rotation, float distance);
 
-    /**
-     * 计算最终的 MVP (Model-View-Projection) 变换矩阵。
-     * 
-     * @param rotationMatrix 手机当前的旋转矩阵。
-     * @param rotation       屏幕旋转角度。
-     * @param ratio          屏幕宽高比。
-     * @param objectPos      物体在世界空间的位置 [x, y, z]。
-     * @return 16 位的 MVP 变换矩阵。
-     */
+    // 计算 MVP 矩阵，ratio 为屏幕宽高比，objectPos 为物体世界坐标
     public native float[] computeMVP(float[] rotationMatrix, int rotation, float ratio, float[] objectPos);
 
     private boolean mInitialized = false; // 是否已初始化物体坐标
@@ -69,14 +51,13 @@ public class ObjectRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        // 设置背景色（深灰色）
+        // 深灰背景
         GLES20.glClearColor(0.1f, 0.15f, 0.2f, 1.0f);
 
         // 启用深度测试
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
         GLES20.glDepthFunc(GLES20.GL_LEQUAL);
 
-        // 初始化着色器程序
         String vertexShaderCode = "uniform mat4 uMVPMatrix;" +
                 "attribute vec4 vPosition;" +
                 "attribute vec4 vColor;" +
@@ -100,7 +81,6 @@ public class ObjectRenderer implements GLSurfaceView.Renderer {
         GLES20.glAttachShader(program, fragmentShader);
         GLES20.glLinkProgram(program);
 
-        // 创建物体数据模型
         createObject();
     }
 
@@ -118,22 +98,15 @@ public class ObjectRenderer implements GLSurfaceView.Renderer {
             return;
         }
 
-        // 获取当前屏幕旋转角度
+        // 当前屏幕旋转角度
         int rotation = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE))
                 .getDefaultDisplay().getRotation();
 
-        // 获取传感器计算出的旋转矩阵
         float[] rotationMatrix = orientationSensor.getRotationMatrix();
 
-        // 检查旋转矩阵是否有效 (初次启动可能为单位矩阵)
-        boolean isIdentity = true;
-        for (int i = 1; i < 4; i++) {
-            if (rotationMatrix[i] != 0)
-                isIdentity = false;
-        }
-
-        // 延迟初始化：当获取到有效的传感器数据后，在相机前方固定距离生成物体
-        if (!mInitialized && !isIdentity) {
+        // 延迟初始化物体世界坐标；不能用“矩阵是否为单位阵”判断数据是否有效，
+        // 平放时倾斜模式的旋转矩阵本身就是单位阵，会导致物体永远不被初始化
+        if (!mInitialized) {
             mObjectWorldPos = calculateInsertionPoint(rotationMatrix, rotation, 2.0f);
             mInitialized = true;
             android.util.Log.d("ObjectRenderer", String.format("物体 world 坐标已初始化: [%.2f, %.2f, %.2f]",
@@ -141,7 +114,6 @@ public class ObjectRenderer implements GLSurfaceView.Renderer {
         }
 
         if (mInitialized) {
-            // 调用 Native 层计算 MVP 矩阵
             float[] newMvpMatrix = computeMVP(rotationMatrix, rotation, mRatio, mObjectWorldPos);
 
             if (newMvpMatrix != null && newMvpMatrix.length == 16) {
@@ -151,9 +123,7 @@ public class ObjectRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    /**
-     * 生成并初始化物体的顶点、颜色和索引缓冲区。
-     */
+    // 构建立方体的顶点、颜色与索引缓冲区
     private void createObject() {
         float size = 0.25f;
 
@@ -181,7 +151,7 @@ public class ObjectRenderer implements GLSurfaceView.Renderer {
                 0.0f, 1.0f, 0.0f, 1.0f
         };
 
-        // 12 个三角形面（36 个顶点索引）
+        // 12 个三角形面，共 36 个顶点索引
         short indices[] = {
                 0, 1, 2, 0, 2, 3,
                 1, 5, 6, 1, 6, 2,
@@ -191,7 +161,7 @@ public class ObjectRenderer implements GLSurfaceView.Renderer {
                 4, 5, 1, 4, 1, 0
         };
 
-        // 为方块的每个面分配不同的颜色
+        // 按面展开颜色，每个面一种颜色
         float expandedColors[] = new float[indices.length * 4];
         int colorIdx = 0;
         float[][] faceColors = {
@@ -212,7 +182,6 @@ public class ObjectRenderer implements GLSurfaceView.Renderer {
             }
         }
 
-        // 分配并填充原生缓冲区
         ByteBuffer vbb = ByteBuffer.allocateDirect(vertices.length * 4);
         vbb.order(ByteOrder.nativeOrder());
         vertexBuffer = vbb.asFloatBuffer();
@@ -232,9 +201,7 @@ public class ObjectRenderer implements GLSurfaceView.Renderer {
         indexBuffer.position(0);
     }
 
-    /**
-     * 执行实际的物体绘制指令。
-     */
+    // 提交顶点属性与 MVP 矩阵后绘制立方体
     private void drawObject() {
         GLES20.glUseProgram(program);
 
@@ -256,9 +223,7 @@ public class ObjectRenderer implements GLSurfaceView.Renderer {
         GLES20.glDisableVertexAttribArray(colorHandle);
     }
 
-    /**
-     * 加载并编译 GLSL 着色器。
-     */
+    // 编译 GLSL 着色器并返回句柄
     private int loadShader(int type, String shaderCode) {
         int shader = GLES20.glCreateShader(type);
         GLES20.glShaderSource(shader, shaderCode);

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 由 tools/app-icon/build_icons.py 生成，请勿手工修改 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 次环 -->
+    <path
+        android:pathData="M64.982,78.666A27.000,9.000,66.000,0,1,43.018,29.334M43.018,29.334A27.000,9.000,66.000,0,1,64.982,78.666"
+        android:strokeColor="#FFFFFFFF" android:strokeAlpha="0.3"
+        android:strokeWidth="2.6" android:strokeLineCap="round" />
+    <!-- 主环后半段 -->
+    <path
+        android:pathData="M25.021,46.486A30.000,11.500,13.000,0,1,83.340,59.950"
+        android:strokeColor="#FFFFFFFF" android:strokeAlpha="0.5"
+        android:strokeWidth="3.0" android:strokeLineCap="round" />
+    <!-- 立方体：用不同 alpha 保留立体感 -->
+    <path android:pathData="M36.000,45.000 L54.000,54.000 L54.000,72.000 L36.000,63.000 Z" android:fillColor="#FFFFFFFF"
+        android:fillAlpha="0.42" />
+    <path android:pathData="M72.000,45.000 L72.000,63.000 L54.000,72.000 L54.000,54.000 Z" android:fillColor="#FFFFFFFF"
+        android:fillAlpha="0.7" />
+    <path android:pathData="M54.000,36.000 L72.000,45.000 L54.000,54.000 L36.000,45.000 Z" android:fillColor="#FFFFFFFF" />
+    <!-- 主环前半段 -->
+    <path
+        android:pathData="M83.340,59.950A30.000,11.500,13.000,1,1,25.021,46.486"
+        android:strokeColor="#FFFFFFFF" android:strokeWidth="3.4"
+        android:strokeLineCap="round" />
+</vector>

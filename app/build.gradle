@@ -15,10 +15,7 @@ android {
         targetSdk 36
         versionCode 1
         versionName "1.0"
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-
 
     buildTypes {
         release {
@@ -41,11 +38,4 @@ android {
             version '4.1.2'
         }
     }
-}
-
-
-dependencies {
-    testImplementation libs.junit
-    androidTestImplementation libs.ext.junit
-    androidTestImplementation libs.espresso.core
 }

@@ -8,11 +8,9 @@
 
 #define PI 3.14159265358979323846f
 
-// 全局状态
 static float g_mObjectWorldPos[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 static bool g_mInitialized = false;
 
-// 辅助函数
 void setIdentityM(float* sm, int smOffset) {
     for (int i=0; i<16; i++) sm[smOffset+i] = 0;
     sm[smOffset+0] = 1; sm[smOffset+5] = 1; sm[smOffset+10] = 1; sm[smOffset+15] = 1;
@@ -102,59 +100,53 @@ void rotateM(float* m, int mOffset, float a, float x, float y, float z) {
     memcpy(m+mOffset, temp, 16*sizeof(float));
 }
 
-// 坐标系重映射
-// 0=0度 (Surface.ROTATION_0), 90=1 (Surface.ROTATION_90), 180=2, 270=3
+// 按屏幕旋转重映射坐标系：0 为 0 度，1 为 90 度，2 为 180 度，3 为 270 度
 void getRemappedMatrix(float* outMatrix, float* inMatrix, int rotation) {
     if(rotation == 0) {
         memcpy(outMatrix, inMatrix, 16 * sizeof(float));
         return;
     }
-    
+
     int axisX = 0, axisY = 0;
     int signX = 1, signY = 1;
-    
-    // 根据屏幕旋转方向映射坐标轴
-    if (rotation == 1) { // 90度 (横屏)
-        // X -> Y, Y -> -X
+
+    if (rotation == 1) { // 90 度横屏，X 映射到 Y，Y 映射到负 X
         axisX = 1; signX = 1;
         axisY = 0; signY = -1;
-    } else if (rotation == 2) { // 180度
-        // X -> -X, Y -> -Y
+    } else if (rotation == 2) { // 180 度，X 与 Y 同时取反
         axisX = 0; signX = -1;
         axisY = 1; signY = -1;
-    } else if (rotation == 3) { // 270度 (反向横屏)
-        // X -> -Y, Y -> X
+    } else if (rotation == 3) { // 270 度反向横屏，X 映射到负 Y，Y 映射到 X
         axisX = 1; signX = -1;
         axisY = 0; signY = 1;
     }
-    
-    // 在这些简单的旋转中 Z 始终是 Z（绕 Z 轴旋转）
-    // 构建新的矩阵列，保持平移分量不变
+
+    // 各档旋转都绕 Z 轴，第三列与平移分量保持不变
     for (int i = 0; i < 4; i++) {
         outMatrix[0*4+i] = inMatrix[axisX*4+i] * signX;
         outMatrix[1*4+i] = inMatrix[axisY*4+i] * signY;
-        outMatrix[2*4+i] = inMatrix[2*4+i]; // Z 轴保持不变
-        outMatrix[3*4+i] = inMatrix[3*4+i]; // 保持平移不变
+        outMatrix[2*4+i] = inMatrix[2*4+i];
+        outMatrix[3*4+i] = inMatrix[3*4+i];
     }
 }
 
+// 计算相机前方 distance 处的物体世界坐标，返回 [x, y, z]
 extern "C" JNIEXPORT jfloatArray JNICALL
 Java_com_olsc_t3dof_render_ObjectRenderer_calculateInsertionPoint(JNIEnv* env, jobject thiz, jfloatArray rotationMatrix, jint rotation, jfloat distance) {
     jsize len = env->GetArrayLength(rotationMatrix);
     float deviceRotation[16];
-    
+
     if (len >= 16) {
         env->GetFloatArrayRegion(rotationMatrix, 0, 16, deviceRotation);
     } else {
         setIdentityM(deviceRotation, 0);
     }
 
-    // 1. 获取根据屏幕旋转调整后的视图矩阵
+    // 取出经屏幕旋转调整后的视图矩阵
     float viewMatrix[16];
     getRemappedMatrix(viewMatrix, deviceRotation, rotation);
 
-    // 2. 计算方块在世界空间中的坐标: Inv(View) * (0, 0, -distance)
-    // 纯旋转矩阵的逆等于其转置
+    // 纯旋转矩阵的逆等于其转置，据此把相机系坐标变换到世界系
     float invViewMatrix[16];
     transposeM(invViewMatrix, 0, viewMatrix, 0);
 
@@ -168,9 +160,9 @@ Java_com_olsc_t3dof_render_ObjectRenderer_calculateInsertionPoint(JNIEnv* env, j
     return result;
 }
 
+// 组合投影、视图与模型矩阵，返回 4x4 的 MVP 矩阵
 extern "C" JNIEXPORT jfloatArray JNICALL
 Java_com_olsc_t3dof_render_ObjectRenderer_computeMVP(JNIEnv* env, jobject thiz, jfloatArray rotationMatrix, jint rotation, jfloat ratio, jfloatArray objectPos) {
-    // 1. 获取设备旋转数据
     jsize len = env->GetArrayLength(rotationMatrix);
     float deviceRotation[16];
     if (len >= 16) {
@@ -179,34 +171,31 @@ Java_com_olsc_t3dof_render_ObjectRenderer_computeMVP(JNIEnv* env, jobject thiz, 
         setIdentityM(deviceRotation, 0);
     }
 
-    // 2. 获取物体世界坐标
+    // 物体世界坐标，缺失时置于原点
     float worldPos[3] = {0, 0, 0};
     if (objectPos != NULL) {
         env->GetFloatArrayRegion(objectPos, 0, 3, worldPos);
     }
 
-    // 3. 计算视图矩阵 (根据屏幕旋转重映射)
     float viewMatrix[16];
     getRemappedMatrix(viewMatrix, deviceRotation, rotation);
-    
-    // 4. 计算投影矩阵
+
     float projectionMatrix[16];
     frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 1.0f, 100.0f);
-    
-    // 5. 计算模型矩阵 (平移到指定的世界坐标并添加固定自转)
+
+    // 模型矩阵：平移到物体位置并叠加固定自转
     float modelMatrix[16];
     setIdentityM(modelMatrix, 0);
     translateM(modelMatrix, 0, worldPos[0], worldPos[1], worldPos[2]);
     rotateM(modelMatrix, 0, 45.0f, 0.0f, 1.0f, 0.0f);
     rotateM(modelMatrix, 0, 30.0f, 1.0f, 0.0f, 0.0f);
-        
-    // 6. 组合变换: MVP = Projection * View * Model
+
     float tempMatrix[16];
     multiplyMM(tempMatrix, 0, viewMatrix, 0, modelMatrix, 0);
-        
+
     float mvpMatrix[16];
     multiplyMM(mvpMatrix, 0, projectionMatrix, 0, tempMatrix, 0);
-        
+
     jfloatArray result = env->NewFloatArray(16);
     env->SetFloatArrayRegion(result, 0, 16, mvpMatrix);
     return result;
